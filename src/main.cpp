@@ -4,12 +4,38 @@
 #include "main.hpp"
 #include <algorithm>
 
+/*
+    What I know:
+        Cipher 1:
+            is a shift cipher. Offset 13, so basically ROT-13!
+
+        Cipher 2:
+            is not a regular shift cipher.
+            is a Vigenere cipher. Key length of 9!
+
+        Cipher 3:
+            is not a regular shift cipher.
+            does not appear to be a Vigenere cipher, checked keylengths [1-50]
+*/
 
 int main(int argc, char** argv)
 {
-
     auto cipher1lower = toLowerCase(cipher1);
+    auto cipher2lower = toLowerCase(cipher2);
+    auto cipher3lower = toLowerCase(cipher3);
+/*
+    std::cout << "Cipher 1, attempted crack of shift cipher:" << std::endl;
+    std::cout << cipher1lower << std::endl;
     std::cout << crackShiftCipher(cipher1lower) << std::endl;
+    std::cout << "-----------------------------------------------" << std::endl;
+
+    std::cout << "Cipher 2, attempted crack of Vigenere cipher:" << std::endl;
+    std::cout << crackVigenereCipher(cipher2lower) << std::endl;
+    std::cout << "-----------------------------------------------" << std::endl;*/
+
+    std::cout << "Cipher 3, attempted crack of vigenere cipher:" << std::endl;
+    std::cout << crackVigenereCipher(cipher3lower) << std::endl;
+    std::cout << "-----------------------------------------------" << std::endl;
 }
 
 
@@ -18,6 +44,7 @@ std::string crackShiftCipher(const std::string& ciphertext)
 {
     float bestDeviation = 4096;
     std::string currentGuess;
+
     for (std::size_t shift = 0; shift <= 26; shift++)
     {
         std::string copy(ciphertext);
@@ -29,6 +56,44 @@ std::string crackShiftCipher(const std::string& ciphertext)
         {
             bestDeviation = dev;
             currentGuess = copy;
+        }
+    }
+
+    return currentGuess;
+}
+
+
+
+std::string crackVigenereCipher(const std::string& ciphertext)
+{
+    float bestDeviation = 4096;
+    std::string currentGuess;
+
+    for (std::size_t keyLength = 1; keyLength <= 25; keyLength++)
+    {
+        std::string whole(ciphertext); //will be overridden
+
+        for (std::size_t offset = 0; offset < keyLength; offset++)
+        {
+            std::string subStr;
+            for (std::size_t j = offset; j < ciphertext.size(); j += keyLength)
+                subStr += ciphertext[j];
+
+            auto cracked = crackShiftCipher(subStr);
+            for (std::size_t j = 0; j < subStr.size(); j++)
+                whole[j * keyLength + offset] = cracked[j];
+        }
+
+        float dev = getDeviationFromEnglish(whole);
+        if (dev < bestDeviation)
+        {
+            bestDeviation = dev;
+            currentGuess = whole;
+
+            std::cout << std::endl;
+            std::cout << "Better guess! Keylength of " << keyLength << std::endl;
+            std::cout << "Deviation from English: " << dev << std::endl;
+            std::cout << currentGuess << std::endl;
         }
     }
 
@@ -57,8 +122,8 @@ float getDeviationFromEnglish(const std::string& str)
     auto ENGLISH = getEnglishFrequencyMap();
     for (auto& x: map)
     {
-        float diff = x.second / str.size() - ENGLISH[x.first];
-        deviation += diff;
+        float diff = x.second / str.size() - ENGLISH[x.first] / 100;
+        deviation += diff * diff;
     }
 
     return deviation;

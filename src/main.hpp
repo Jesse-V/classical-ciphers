@@ -8,6 +8,8 @@
 typedef std::unordered_map<char, float> FrequencyMap;
 
 std::string crackShiftCipher(const std::string& ciphertext);
+std::string crackVigenereCipher(const std::string& ciphertext);
+
 float getDeviationFromEnglish(const std::string& str);
 FrequencyMap getEnglishFrequencyMap();
 std::string toLowerCase(const std::string& str);
