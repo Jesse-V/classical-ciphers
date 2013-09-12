@@ -16,6 +16,24 @@
         Cipher 3:
             is not a regular shift cipher.
             does not appear to be a Vigenere cipher, checked keylengths [1-50]
+
+            could be columnar transposition
+            could be monoalphabetic substitution
+
+        Cipher 4:
+            is not a regular shift cipher.
+            does not appear to be a Vigenere cipher, checked keylengths [1-50]
+
+            could be columnar transposition
+            could be monoalphabetic substitution
+
+Ceasar cipher - no cipher
+shift cipher - Cipher 1, no other cipher
+monoalphabetic substitution cipher
+one-time-pad - basically uncrackable without finding secret key
+columnar transposition - of those, could be rail cipher or regular
+vignere cipher - Cipher 2, no other cipher
+
 */
 
 int main(int argc, char** argv)
@@ -23,19 +41,22 @@ int main(int argc, char** argv)
     auto cipher1lower = toLowerCase(cipher1);
     auto cipher2lower = toLowerCase(cipher2);
     auto cipher3lower = toLowerCase(cipher3);
+    auto cipher4lower = toLowerCase(cipher4);
+//"wecrlteerdsoeefeaocaivden"
+    std::cout << crackRailCipher("wireeedseeeacaecvdltnrofo") << std::endl;
 /*
     std::cout << "Cipher 1, attempted crack of shift cipher:" << std::endl;
     std::cout << cipher1lower << std::endl;
     std::cout << crackShiftCipher(cipher1lower) << std::endl;
-    std::cout << "-----------------------------------------------" << std::endl;
-
+    std::cout << "-----------------------------------------------" << std::endl;*/
+/*
     std::cout << "Cipher 2, attempted crack of Vigenere cipher:" << std::endl;
     std::cout << crackVigenereCipher(cipher2lower) << std::endl;
     std::cout << "-----------------------------------------------" << std::endl;*/
-
-    std::cout << "Cipher 3, attempted crack of vigenere cipher:" << std::endl;
-    std::cout << crackVigenereCipher(cipher3lower) << std::endl;
-    std::cout << "-----------------------------------------------" << std::endl;
+/*
+    std::cout << "Cipher 4, attempted crack of vigenere cipher:" << std::endl;
+    std::cout << crackVigenereCipher(cipher4lower) << std::endl;
+    std::cout << "-----------------------------------------------" << std::endl;*/
 }
 
 
@@ -100,6 +121,44 @@ std::string crackVigenereCipher(const std::string& ciphertext)
     return currentGuess;
 }
 
+//wearediscoveredfleeatonce
+//wecrlteerdsoeefeadcaivden
+
+
+std::string crackRailCipher(const std::string& ciphertext)
+{
+    int maxKeyLength = 40;
+    if (maxKeyLength >= ciphertext.size())
+        maxKeyLength = ciphertext.size();
+
+    //for (int keyLength = 2; keyLength < maxKeyLength; keyLength++)
+    int keyLength = 4;
+    {
+        std::string plaintext(ciphertext);
+
+        int cipherIndex = 0;
+        for (int offset = 0; offset < keyLength; offset++)
+        {
+            int diff = (keyLength - 1) * 2 - offset * 2;
+
+            if (offset == keyLength - 1)
+                diff = (keyLength - 1) * 2;
+            std::cout << diff << std::endl;
+            for (int j = offset; j < ciphertext.size(); j += diff)
+            {
+                plaintext[j] = ciphertext[cipherIndex];
+                cipherIndex++;
+            }
+        }
+
+        std::cout << cipherIndex << ", " << ciphertext.size() << std::endl;
+
+        std::cout << keyLength << ": " << plaintext << std::endl;
+    }
+
+    return "";
+}
+
 
 
 std::string toLowerCase(const std::string& str)
@@ -118,8 +177,8 @@ float getDeviationFromEnglish(const std::string& str)
     for (std::size_t j = 0; j < str.size(); j++)
         map[str[j]] = map[str[j]] + 1;
 
-    float deviation = 0;
     auto ENGLISH = getEnglishFrequencyMap();
+    float deviation = 0;
     for (auto& x: map)
     {
         float diff = x.second / str.size() - ENGLISH[x.first] / 100;
