@@ -7,32 +7,37 @@
 /*
     What I know:
         Cipher 1:
-            is a shift cipher. Offset 13, so basically ROT-13!
+            is a shift cipher. Shift key is 13, so basically ROT-13!
 
         Cipher 2:
             is not a regular shift cipher.
-            is a Vigenere cipher. Key length of 9!
+            is a Vigenere cipher. Key length of 9, key worcester
 
         Cipher 3:
             is not a regular shift cipher.
             does not appear to be a Vigenere cipher, checked keylengths [1-50]
-
-            could be columnar transposition
-            could be monoalphabetic substitution
+            does not appear to be a Fence Rail cipher, checked leylengths [1-25]
+            has very flat frequencies, suggesting something unusual
+                monoalphabetic sub or column transpose couldn't do this
+                One-time pad? Vigenere? Vigenere autokey? Hill?
+                Variance from English: 0.0282431
+                One-time pad is impossible, V autokey nor Hill were listed.
 
         Cipher 4:
             is not a regular shift cipher.
             does not appear to be a Vigenere cipher, checked keylengths [1-50]
+            does not appear to be a Fence Rail cipher, checked leylengths [1-25]
+            has varying frequency distributions, suggesting substitutions
+                Monoalphabetic? Columnar transpose? Affine cipher (p28)?
+                Variance from English: 0.0521973
 
-            could be columnar transposition
-            could be monoalphabetic substitution
-
-Ceasar cipher - no cipher
-shift cipher - Cipher 1, no other cipher
-monoalphabetic substitution cipher
-one-time-pad - basically uncrackable without finding secret key
-columnar transposition - of those, could be rail cipher or regular
-vignere cipher - Cipher 2, no other cipher
+Hints and notes:
+Ceasar cipher - no cipher, rough distribution graph
+shift cipher - Cipher 1, no other cipher, rough distribution graph
+monoalphabetic substitution cipher, rough distribution graph
+one-time-pad - basically uncrackable without finding secret key, flat distrib
+columnar transposition - rail or regular, rough distribution graph
+vignere cipher - Cipher 2, no other cipher, flat distribution
 
 */
 
@@ -42,21 +47,27 @@ int main(int argc, char** argv)
     auto cipher2lower = toLowerCase(cipher2);
     auto cipher3lower = toLowerCase(cipher3);
     auto cipher4lower = toLowerCase(cipher4);
-//"wecrlteerdsoeefeaocaivden"
-    std::cout << crackRailCipher("wireeedseeeacaecvdltnrofo") << std::endl;
-/*
+
     std::cout << "Cipher 1, attempted crack of shift cipher:" << std::endl;
     std::cout << cipher1lower << std::endl;
     std::cout << crackShiftCipher(cipher1lower) << std::endl;
-    std::cout << "-----------------------------------------------" << std::endl;*/
-/*
+    std::cout << "-----------------------------------------------" << std::endl;
+
     std::cout << "Cipher 2, attempted crack of Vigenere cipher:" << std::endl;
+    std::cout << cipher2lower << std::endl;
     std::cout << crackVigenereCipher(cipher2lower) << std::endl;
-    std::cout << "-----------------------------------------------" << std::endl;*/
+    std::cout << "-----------------------------------------------" << std::endl;
 /*
     std::cout << "Cipher 4, attempted crack of vigenere cipher:" << std::endl;
     std::cout << crackVigenereCipher(cipher4lower) << std::endl;
-    std::cout << "-----------------------------------------------" << std::endl;*/
+    std::cout << "-----------------------------------------------" << std::endl;
+
+    //std::cout << crackRailCipher("wireeedseeeacaecvdltnrofo") << std::endl;
+
+    //std::cout << getDeviationFromEnglish(cipher3lower) << std::endl;
+    //std::cout << getDeviationFromEnglish(cipher4lower) << std::endl;
+
+    std::cout << crackVigenereCipher(cipher3lower) << std::endl;*/
 }
 
 
@@ -65,6 +76,7 @@ std::string crackShiftCipher(const std::string& ciphertext)
 {
     float bestDeviation = 4096;
     std::string currentGuess;
+    int best = -1;
 
     for (std::size_t shift = 0; shift <= 26; shift++)
     {
@@ -77,6 +89,7 @@ std::string crackShiftCipher(const std::string& ciphertext)
         {
             bestDeviation = dev;
             currentGuess = copy;
+            best = shift;
         }
     }
 
@@ -90,7 +103,7 @@ std::string crackVigenereCipher(const std::string& ciphertext)
     float bestDeviation = 4096;
     std::string currentGuess;
 
-    for (std::size_t keyLength = 1; keyLength <= 25; keyLength++)
+    for (std::size_t keyLength = 1; keyLength <= 20; keyLength++)
     {
         std::string whole(ciphertext); //will be overridden
 
@@ -106,6 +119,7 @@ std::string crackVigenereCipher(const std::string& ciphertext)
         }
 
         float dev = getDeviationFromEnglish(whole);
+
         if (dev < bestDeviation)
         {
             bestDeviation = dev;
@@ -121,8 +135,6 @@ std::string crackVigenereCipher(const std::string& ciphertext)
     return currentGuess;
 }
 
-//wearediscoveredfleeatonce
-//wecrlteerdsoeefeadcaivden
 
 
 std::string crackRailCipher(const std::string& ciphertext)
@@ -131,8 +143,7 @@ std::string crackRailCipher(const std::string& ciphertext)
     if (maxKeyLength >= ciphertext.size())
         maxKeyLength = ciphertext.size();
 
-    //for (int keyLength = 2; keyLength < maxKeyLength; keyLength++)
-    int keyLength = 4;
+    for (int keyLength = 2; keyLength < maxKeyLength; keyLength++)
     {
         std::string plaintext(ciphertext);
 
@@ -143,15 +154,13 @@ std::string crackRailCipher(const std::string& ciphertext)
 
             if (offset == keyLength - 1)
                 diff = (keyLength - 1) * 2;
-            std::cout << diff << std::endl;
+
             for (int j = offset; j < ciphertext.size(); j += diff)
             {
                 plaintext[j] = ciphertext[cipherIndex];
                 cipherIndex++;
             }
         }
-
-        std::cout << cipherIndex << ", " << ciphertext.size() << std::endl;
 
         std::cout << keyLength << ": " << plaintext << std::endl;
     }
