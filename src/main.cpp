@@ -22,6 +22,7 @@
                 One-time pad? Vigenere? Vigenere autokey? Hill?
                 Variance from English: 0.0282431
                 One-time pad is impossible, V autokey nor Hill were listed.
+                I'm pretty sure that this is an uncrackable one-time pad.
 
         Cipher 4:
             is not a regular shift cipher.
@@ -30,6 +31,9 @@
             has varying frequency distributions, suggesting substitutions
                 Monoalphabetic? Columnar transpose? Affine cipher (p28)?
                 Variance from English: 0.0521973
+                Columnar transposition leaves normal statistical distribution
+                Thus, this is a regular monoalphabetic cipher.
+                I wish this cipher were longer, would make cracking easier.
 
 Hints and notes:
 Ceasar cipher - no cipher, rough distribution graph
@@ -52,12 +56,19 @@ int main(int argc, char** argv)
     std::cout << cipher1lower << std::endl;
     std::cout << crackShiftCipher(cipher1lower) << std::endl;
     std::cout << "-----------------------------------------------" << std::endl;
+    /*
+        letmebeginbysayingthankstoallyouwhovetraveledfromfarandwidetobravethecoldtodayweallmadethisjourneyforareasonitshumblingbutinmyheartiknowyoudidntcomeherejustformeyoucameherebecauseyoubelieveinwhatthiscountrycanbeinthefaceofwaryoubelievetherecanbepeaceinthefaceofdespairyoubelievetherecanbehopeinthefaceofapoliticsthatsshutyououtthatstoldyoutosettlethatsdividedusfortoolongyoubelievewecanbeonepeoplereachingforwhatspossiblebuildingthatmoreperfectunionthatsthejourneywereontodaybutletmetellyouhowicametobehereasmostofyouknowiamnotanativeofthisgreatstateimovedtoillinoisovertwodecadesagoiwasayoungmanthenjustayearoutofcollegeiknewnooneinchicagowaswithoutmoneyorfamilyconnectionsbutagroupofchurcheshadofferedmeajobasacommunityorganizerforayearandiacceptedthejobsightunseenmotivatedthenbyasinglesimplepowerfulideathatimightplayasmallpartinbuildingabetteramericamyworktookmetosomeofchicagospoorestneighborhoodsijoinedwithpastorsandlaypeopletodealwithcommunitiesthathadbeenravagedbyplantclosingsisawthattheproblemspeoplefacedwerents
+    */
 
     std::cout << "Cipher 2, attempted crack of Vigenere cipher:" << std::endl;
     std::cout << cipher2lower << std::endl;
     std::cout << crackVigenereCipher(cipher2lower) << std::endl;
     std::cout << "-----------------------------------------------" << std::endl;
-/*
+    /*
+        callmeishmaelsomeyearsagonevermindhowlongpreciselyhavinglittleornomoneyinmypurseandnothingparticulartointerestmeonshoreithoughtiwouldsailaboutalittleandseethewaterypartoftheworlditisawayihaveofdrivingoffthespleenandregulatingthecirculationwheneverifindmyselfgrowinggrimaboutthemouthwheneveritisadampdrizzlynovemberinmysoulwheneverifindmyselfinvoluntarilypausingbeforecoffinwarehousesandbringinguptherearofeveryfuneralimeetandespeciallywhenevermyhyposgetsuchanupperhandofmethatitrequiresastrongmoralprincipletopreventmefromdeliberatelysteppingintothestreetandmethodicallyknockingpeopleshatsofftheniaccountithightimetogettoseaassoonasicanthisismysubstituteforpistolandballwithaphilosophicalflourishcatothrowshimselfuponhisswordiquietlytaketotheshipthereisnothingsurprisin
+    */
+
+    /*
     std::cout << "Cipher 4, attempted crack of vigenere cipher:" << std::endl;
     std::cout << crackVigenereCipher(cipher4lower) << std::endl;
     std::cout << "-----------------------------------------------" << std::endl;
@@ -67,11 +78,17 @@ int main(int argc, char** argv)
     //std::cout << getDeviationFromEnglish(cipher3lower) << std::endl;
     //std::cout << getDeviationFromEnglish(cipher4lower) << std::endl;
 
-    std::cout << crackVigenereCipher(cipher3lower) << std::endl;*/
+    std::cout << crackVigenereCipher(cipher3lower) << std::endl;
+    */
 }
 
 
 
+/*
+    Cracks the ciphertext via brute-force.
+    It tries all 26 combinations, and returns the shift that is
+    most statistically similar to English's letter frequencies.
+*/
 std::string crackShiftCipher(const std::string& ciphertext)
 {
     float bestDeviation = 4096;
@@ -98,6 +115,15 @@ std::string crackShiftCipher(const std::string& ciphertext)
 
 
 
+/*
+    Cracks the Vigenere cipher by looking at every keyLength-th letter,
+    and then cracking that shift cipher. Since the key repeats, there is
+    statistical information that is repeated in the ciphertext. This method
+    cracks each character of the key in turn, and then returns the most
+    statistically-likely plaintext. Note that this doesn't always lead to the
+    best plaintext, but by printing off the intermediate better guesses,
+    the actual plaintext can be revealed.
+*/
 std::string crackVigenereCipher(const std::string& ciphertext)
 {
     float bestDeviation = 4096;
@@ -137,6 +163,11 @@ std::string crackVigenereCipher(const std::string& ciphertext)
 
 
 
+/*
+    Cracks the rail cipher by just brute-forcing the key.
+    There's no statistics involved in this cipher, so its just a matter
+    of rearranging the ciphertext to reveal the plaintext.
+*/
 std::string crackRailCipher(const std::string& ciphertext)
 {
     int maxKeyLength = 40;
@@ -170,6 +201,9 @@ std::string crackRailCipher(const std::string& ciphertext)
 
 
 
+/*
+    Converts the given text to lowercase and returns the result.
+*/
 std::string toLowerCase(const std::string& str)
 {
     std::string copy(str);
@@ -179,6 +213,10 @@ std::string toLowerCase(const std::string& str)
 
 
 
+/*
+    Returns the statistical deviation of str from English's letter
+    frequency distributions.
+*/
 float getDeviationFromEnglish(const std::string& str)
 {
     FrequencyMap map;
@@ -199,6 +237,9 @@ float getDeviationFromEnglish(const std::string& str)
 
 
 
+/*
+    Returns the letter frequencies for English. Courtesy Wikipedia.
+*/
 FrequencyMap getEnglishFrequencyMap()
 {
     static FrequencyMap english;
